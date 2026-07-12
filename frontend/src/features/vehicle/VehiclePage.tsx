@@ -103,7 +103,7 @@ export const VehiclePage: React.FC = () => {
     setDeleteOpen(true);
   };
 
-  const handleFormSubmit = (values: VehicleFormValues) => {
+  const handleFormSubmit = (values: VehicleFormValues, setError: any) => {
     const mutation = editingVehicle
       ? updateMutation.mutateAsync(values)
       : createMutation.mutateAsync(values);
@@ -115,7 +115,15 @@ export const VehiclePage: React.FC = () => {
         setToastMessage(`Vehicle successfully ${editingVehicle ? 'updated' : 'registered'}.`);
       })
       .catch((err) => {
-        setToastMessage(err.response?.data?.message || 'An error occurred while saving the vehicle.');
+        const errorMsg = err.response?.data?.message || 'An error occurred while saving the vehicle.';
+        if (err.response?.status === 409 || errorMsg.toLowerCase().includes('duplicate') || errorMsg.toLowerCase().includes('already exists')) {
+          setError('registrationNumber', {
+            type: 'manual',
+            message: errorMsg
+          });
+        } else {
+          setToastMessage(errorMsg);
+        }
       });
   };
 
@@ -190,7 +198,7 @@ export const VehiclePage: React.FC = () => {
             loading={isLoading}
             onEdit={handleOpenEdit}
             onDelete={handleOpenDelete}
-            onViewDetails={(id) => navigate(`/vehicles/${id}`)}
+            onViewDetails={(id) => navigate(`/fleet/vehicles/${id}`)}
             sortBy={sortBy}
             sortOrder={sortOrder}
             onRequestSort={handleSortRequest}

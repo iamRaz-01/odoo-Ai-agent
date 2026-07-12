@@ -64,7 +64,7 @@ describe('VehicleDetailPage', () => {
   it('renders specs, dispatch readiness check, and diagnostic telemetry cards', () => {
     render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={['/vehicles/1']}>
+        <MemoryRouter initialEntries={['/fleet/vehicles/1']}>
           <VehicleDetailPage />
         </MemoryRouter>
       </QueryClientProvider>

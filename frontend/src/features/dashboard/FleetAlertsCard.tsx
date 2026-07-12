@@ -58,7 +58,7 @@ export const FleetAlertsCard: React.FC<FleetAlertsCardProps> = ({
                       <Button
                         size="small"
                         endIcon={<ArrowForwardIcon fontSize="small" />}
-                        onClick={() => navigate(`/vehicles/${alert.vehicleId}`)}
+                        onClick={() => navigate(`/fleet/vehicles/${alert.vehicleId}`)}
                       >
                         Resolve
                       </Button>

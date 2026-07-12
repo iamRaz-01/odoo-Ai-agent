@@ -108,7 +108,7 @@ class VehicleServiceImplTest {
     @Test
     void createVehicle_Success() {
         when(registrationNumberValidator.normalize(anyString())).thenReturn("NY-1234");
-        when(vehicleRepository.existsByRegistrationNumberIgnoreCase("NY-1234")).thenReturn(false);
+        when(vehicleRepository.existsByRegistrationNumberIgnoreCaseAny("NY-1234")).thenReturn(0);
         when(vehicleTypeService.getTypeEntityById(1L)).thenReturn(testType);
         when(vehicleMapper.toEntity(any(VehicleRequest.class))).thenReturn(testVehicle);
         when(vehicleRepository.save(any(VehicleEntity.class))).thenReturn(testVehicle);
@@ -126,7 +126,7 @@ class VehicleServiceImplTest {
     @Test
     void createVehicle_DuplicateRegistration() {
         when(registrationNumberValidator.normalize(anyString())).thenReturn("NY-1234");
-        when(vehicleRepository.existsByRegistrationNumberIgnoreCase("NY-1234")).thenReturn(true);
+        when(vehicleRepository.existsByRegistrationNumberIgnoreCaseAny("NY-1234")).thenReturn(1);
 
         assertThrows(DuplicateRegistrationException.class, () -> vehicleService.createVehicle(testRequest));
     }
