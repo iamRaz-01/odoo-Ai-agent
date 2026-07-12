@@ -6,5 +6,12 @@ public enum VehicleStatus {
     ON_TRIP,
     IN_SHOP,
     BREAKDOWN,
-    RETIRED
+    RETIRED,
+    PURCHASED,
+    REGISTERED,
+    ACTIVE,
+    ASSIGNED,
+    MAINTENANCE,
+    RETURNED,
+    DECOMMISSIONED
 }

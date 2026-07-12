@@ -20,7 +20,11 @@ import {
   Alert,
   Snackbar,
   DialogActions,
-  DialogContentText
+  DialogContentText,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
@@ -28,7 +32,28 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import SpeedIcon from '@mui/icons-material/Speed';
 import LocalAtmIcon from '@mui/icons-material/LocalAtm';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { useVehicle, useVehicleDocuments, useUploadDocument, useUpdateDocument, useDeleteDocument } from './vehicleHooks';
+import BuildIcon from '@mui/icons-material/Build';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
+import BatteryChargingFullIcon from '@mui/icons-material/BatteryChargingFull';
+import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
+import TireRepairIcon from '@mui/icons-material/TireRepair';
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+
+import {
+  useVehicle,
+  useVehicleDocuments,
+  useUploadDocument,
+  useUpdateDocument,
+  useDeleteDocument,
+  useVehicleReadiness,
+  useVehicleTelemetry,
+  useScheduleMaintenance,
+  useCloseMaintenance
+} from './vehicleHooks';
 import { VehicleStatusChip } from './VehicleStatusChip';
 import { VehicleDocumentTable } from './VehicleDocumentTable';
 import { useAuthStore } from '../../store/authStore';
@@ -43,7 +68,7 @@ export const VehicleDetailPage: React.FC = () => {
   const userRole = user?.role?.name;
   const canModify = userRole === 'ADMIN' || userRole === 'FLEET_MANAGER';
 
-  // State
+  // Dialog & Toast State
   const [docOpen, setDocOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState<VehicleDocumentResponse | undefined>(undefined);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -59,11 +84,15 @@ export const VehicleDetailPage: React.FC = () => {
   // Queries
   const { data: vehicle, isLoading: vehicleLoading, isError: vehicleError } = useVehicle(vehicleId);
   const { data: documents = [], isLoading: docsLoading } = useVehicleDocuments(vehicleId);
+  const { data: readiness, isLoading: readinessLoading } = useVehicleReadiness(vehicleId);
+  const { data: telemetry, isLoading: telemetryLoading } = useVehicleTelemetry(vehicleId);
 
   // Mutations
   const uploadMutation = useUploadDocument(vehicleId);
   const updateMutation = useUpdateDocument(vehicleId, editingDoc?.id || 0);
   const deleteMutation = useDeleteDocument(vehicleId);
+  const scheduleMaintMutation = useScheduleMaintenance(vehicleId);
+  const closeMaintMutation = useCloseMaintenance(vehicleId);
 
   // Handlers
   const handleOpenUpload = () => {
@@ -132,6 +161,26 @@ export const VehicleDetailPage: React.FC = () => {
     }
   };
 
+  const handleScheduleMaintenance = () => {
+    scheduleMaintMutation.mutateAsync()
+      .then(() => {
+        setToast('Vehicle scheduled for maintenance successfully.');
+      })
+      .catch((err) => {
+        setToast(err.response?.data?.message || 'Failed to schedule maintenance.');
+      });
+  };
+
+  const handleCloseMaintenance = () => {
+    closeMaintMutation.mutateAsync()
+      .then(() => {
+        setToast('Vehicle maintenance completed and closed.');
+      })
+      .catch((err) => {
+        setToast(err.response?.data?.message || 'Failed to close maintenance.');
+      });
+  };
+
   if (vehicleLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 10 }}>
@@ -148,6 +197,8 @@ export const VehicleDetailPage: React.FC = () => {
     );
   }
 
+  const isUnderMaintenance = vehicle.status === 'MAINTENANCE' || vehicle.status === 'IN_SHOP';
+
   return (
     <Box>
       {/* Breadcrumbs */}
@@ -162,88 +213,313 @@ export const VehicleDetailPage: React.FC = () => {
       </Breadcrumbs>
 
       {/* Title block */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 4 }}>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/vehicles')} variant="outlined">
-          Back
-        </Button>
-        <Box>
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
-            Vehicle Details: {vehicle.registrationNumber}
-          </Typography>
-        </Box>
-        <VehicleStatusChip status={vehicle.status} />
+      <Stack direction={{ xs: 'column', md: 'row' }} justify-content="space-between" spacing={2} alignItems={{ md: 'center' }} sx={{ mb: 4 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/vehicles')} variant="outlined">
+            Back
+          </Button>
+          <Box>
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 'bold' }}>
+              Vehicle: {vehicle.registrationNumber}
+            </Typography>
+            {vehicle.name && (
+              <Typography variant="subtitle1" color="text.secondary">
+                {vehicle.name} {vehicle.model ? `(${vehicle.model})` : ''}
+              </Typography>
+            )}
+          </Box>
+          <VehicleStatusChip status={vehicle.status} />
+        </Stack>
+
+        {canModify && (
+          <Stack direction="row" spacing={1} sx={{ ml: { md: 'auto' } }}>
+            {isUnderMaintenance ? (
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<CheckIcon />}
+                onClick={handleCloseMaintenance}
+                disabled={closeMaintMutation.isPending}
+              >
+                Close Maintenance
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                color="warning"
+                startIcon={<BuildIcon />}
+                onClick={handleScheduleMaintenance}
+                disabled={scheduleMaintMutation.isPending}
+              >
+                Schedule Maintenance
+              </Button>
+            )}
+          </Stack>
+        )}
       </Stack>
 
       <Grid container spacing={3}>
         {/* Specifications */}
-        <Grid size={{ xs: 12, md: 5 }}>
-          <Card elevation={1}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card elevation={1} sx={{ height: '100%' }}>
             <CardContent sx={{ p: 3 }}>
               <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-                Vehicle Specifications
+                Specifications
               </Typography>
               <Divider sx={{ mb: 2 }} />
 
-              <Stack spacing={2.5}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <CalendarTodayIcon color="action" />
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      Vehicle Type
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      {vehicle.vehicleType?.description ?? vehicle.vehicleType?.name}
-                    </Typography>
-                  </Box>
+              <Stack spacing={2}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    Vehicle Type
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    {vehicle.vehicleType?.description ?? vehicle.vehicleType?.name}
+                  </Typography>
                 </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <SpeedIcon color="action" />
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      Odometer Readings
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      {vehicle.odometer.toLocaleString()} km
-                    </Typography>
-                  </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    Fuel Type
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    {vehicle.fuelType || 'N/A'}
+                  </Typography>
                 </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <SettingsIcon color="action" />
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      Payload Capacity
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      {vehicle.capacity} metric tons
-                    </Typography>
-                  </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    Manufacturing Year
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    {vehicle.manufacturingYear || 'N/A'}
+                  </Typography>
                 </Box>
-
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <LocalAtmIcon color="action" />
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      Acquisition Value
-                    </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-                      ${vehicle.acquisitionCost.toLocaleString()} USD
-                    </Typography>
-                  </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    Engine & Chassis Numbers
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                    E: {vehicle.engineNumber || 'N/A'}<br />
+                    C: {vehicle.chassisNumber || 'N/A'}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    Assigned Depot
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    {vehicle.assignedDepot || 'N/A'}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    Odometer / Distance
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    {vehicle.odometer.toLocaleString()} km
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    Max Payload / Capacity
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                    {vehicle.maximumCapacity ? `${vehicle.maximumCapacity} tons` : `${vehicle.capacity} tons (base)`}
+                  </Typography>
                 </Box>
               </Stack>
             </CardContent>
           </Card>
         </Grid>
 
+        {/* Dispatch Readiness check */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card elevation={1} sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Dispatch Readiness Check
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              {readinessLoading ? (
+                <CircularProgress />
+              ) : readiness ? (
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                    {readiness.ready ? (
+                      <CheckCircleOutlineIcon color="success" sx={{ fontSize: 36 }} />
+                    ) : (
+                      <ErrorOutlineIcon color="error" sx={{ fontSize: 36 }} />
+                    )}
+                    <Box>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                        Status: {readiness.ready ? 'READY FOR DISPATCH' : 'NOT READY'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Verifies vehicle safety, fuel level and documentation compliance.
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <List dense>
+                    <ListItem>
+                      <ListItemIcon>
+                        {readiness.insuranceValid ? <CheckIcon color="success" /> : <CloseIcon color="error" />}
+                      </ListItemIcon>
+                      <ListItemText primary="Insurance Validation" />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        {readiness.fitnessValid ? <CheckIcon color="success" /> : <CloseIcon color="error" />}
+                      </ListItemIcon>
+                      <ListItemText primary="Fitness Certificate" />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        {readiness.pollutionValid ? <CheckIcon color="success" /> : <CloseIcon color="error" />}
+                      </ListItemIcon>
+                      <ListItemText primary="Pollution Certificate" />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        {readiness.fuelAvailable ? <CheckIcon color="success" /> : <CloseIcon color="error" />}
+                      </ListItemIcon>
+                      <ListItemText primary="Fuel Available (>15%)" />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        {readiness.driverAssigned ? <CheckIcon color="success" /> : <CloseIcon color="error" />}
+                      </ListItemIcon>
+                      <ListItemText primary="Driver Assigned" />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        {readiness.maintenanceCompleted ? <CheckIcon color="success" /> : <CloseIcon color="error" />}
+                      </ListItemIcon>
+                      <ListItemText primary="Maintenance Complete" />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon>
+                        {readiness.noActiveBreakdown ? <CheckIcon color="success" /> : <CloseIcon color="error" />}
+                      </ListItemIcon>
+                      <ListItemText primary="No Active Breakdown" />
+                    </ListItem>
+                  </List>
+
+                  {readiness.issues.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" color="error" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        Discrepancies found:
+                      </Typography>
+                      {readiness.issues.map((issue, idx) => (
+                        <Typography key={idx} variant="body2" color="error" sx={{ display: 'block', pl: 1 }}>
+                          • {issue}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              ) : (
+                <Typography color="text.secondary">No readiness data available.</Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Telemetry Health Display */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card elevation={1} sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                Vehicle Diagnostics (Telemetry)
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              {telemetryLoading ? (
+                <CircularProgress />
+              ) : telemetry ? (
+                <Stack spacing={2.5}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <ThermostatIcon color="action" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        Engine Temperature
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                        {telemetry.engineTemperature != null ? `${telemetry.engineTemperature}°C` : 'N/A (No active telemetry stream)'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <BatteryChargingFullIcon color="action" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        Battery Status
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                        {telemetry.batteryVoltage != null ? `${telemetry.batteryVoltage} V` : 'N/A (No active telemetry stream)'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <LocalGasStationIcon color="action" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        Fuel Telemetry
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                        {telemetry.fuelLevel != null ? `${telemetry.fuelLevel}%` : 'N/A (No active telemetry stream)'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <TireRepairIcon color="action" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        Tire Pressure
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
+                        {telemetry.tirePressure != null ? `${telemetry.tirePressure} psi` : 'N/A (No active telemetry stream)'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <EngineeringIcon color="action" />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                        Fault Codes / Warnings
+                      </Typography>
+                      {telemetry.engineFaultCodes.length > 0 ? (
+                        telemetry.engineFaultCodes.map((code) => (
+                          <Typography key={code} variant="body2" sx={{ fontWeight: 'bold', color: 'error.main' }}>
+                            {code}
+                          </Typography>
+                        ))
+                      ) : (
+                        <Typography variant="body1" sx={{ fontWeight: 'medium', color: 'success.main' }}>
+                          No DTC fault codes detected.
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </Stack>
+              ) : (
+                <Typography color="text.secondary">No diagnostic telemetry available.</Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
         {/* Documents */}
-        <Grid size={{ xs: 12, md: 7 }}>
+        <Grid size={{ xs: 12 }}>
           <Card elevation={1}>
             <CardContent sx={{ p: 3 }}>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                  Compliance Documents
+                  Compliance & Regulatory Documents
                 </Typography>
                 {canModify && (
                   <Button
@@ -291,8 +567,11 @@ export const VehicleDetailPage: React.FC = () => {
               <MenuItem value="INSURANCE">Insurance Certificate</MenuItem>
               <MenuItem value="REGISTRATION">Registration Certificate</MenuItem>
               <MenuItem value="POLLUTION">Pollution Certificate</MenuItem>
+              <MenuItem value="ROAD_TAX">Road Tax License</MenuItem>
               <MenuItem value="PERMIT">Permit License</MenuItem>
-              <MenuItem value="OTHER">Other compliance</MenuItem>
+              <MenuItem value="FITNESS">Fitness Certificate</MenuItem>
+              <MenuItem value="SERVICE_RECORD">Service Record</MenuItem>
+              <MenuItem value="OTHER">Other Compliance Document</MenuItem>
             </TextField>
 
             <TextField
@@ -337,7 +616,7 @@ export const VehicleDetailPage: React.FC = () => {
         <DialogTitle sx={{ fontWeight: 'bold' }}>Delete Document</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this compliance document? Expired or missing documents can affect fleet compliance health.
+            Are you sure you want to delete this compliance document? Expired or missing documents will affect fleet compliance health.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

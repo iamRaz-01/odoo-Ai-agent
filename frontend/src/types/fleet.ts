@@ -1,4 +1,17 @@
-export type VehicleStatus = 'AVAILABLE' | 'RESERVED' | 'ON_TRIP' | 'IN_SHOP' | 'BREAKDOWN' | 'RETIRED';
+export type VehicleStatus =
+  | 'AVAILABLE'
+  | 'RESERVED'
+  | 'ON_TRIP'
+  | 'IN_SHOP'
+  | 'BREAKDOWN'
+  | 'RETIRED'
+  | 'PURCHASED'
+  | 'REGISTERED'
+  | 'ACTIVE'
+  | 'ASSIGNED'
+  | 'MAINTENANCE'
+  | 'RETURNED'
+  | 'DECOMMISSIONED';
 
 export interface VehicleTypeResponse {
   id: number;
@@ -14,6 +27,16 @@ export interface VehicleResponse {
   acquisitionCost: number;
   odometer: number;
   status: VehicleStatus;
+  name?: string;
+  model?: string;
+  fuelType?: string;
+  manufacturingYear?: number | null;
+  engineNumber?: string;
+  chassisNumber?: string;
+  assignedDepot?: string;
+  maximumCapacity?: number | null;
+  driverId?: number | null;
+  fuelLevel?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,6 +48,16 @@ export interface VehicleRequest {
   acquisitionCost: number;
   odometer: number;
   status: VehicleStatus;
+  name?: string;
+  model?: string;
+  fuelType?: string;
+  manufacturingYear?: number | null;
+  engineNumber?: string;
+  chassisNumber?: string;
+  assignedDepot?: string;
+  maximumCapacity?: number | null;
+  driverId?: number | null;
+  fuelLevel?: number | null;
 }
 
 export interface VehicleUpdateRequest {
@@ -33,6 +66,16 @@ export interface VehicleUpdateRequest {
   acquisitionCost: number;
   odometer: number;
   status: VehicleStatus;
+  name?: string;
+  model?: string;
+  fuelType?: string;
+  manufacturingYear?: number | null;
+  engineNumber?: string;
+  chassisNumber?: string;
+  assignedDepot?: string;
+  maximumCapacity?: number | null;
+  driverId?: number | null;
+  fuelLevel?: number | null;
 }
 
 export interface VehicleDocumentResponse {
@@ -57,7 +100,7 @@ export interface AlertResponse {
   id: number;
   type: string;
   message: string;
-  vehicleId: number;
+  vehicleId: number | null;
   registrationNumber: string;
   details: string;
 }
@@ -86,6 +129,39 @@ export interface FleetDashboardResponse {
   utilization: number;
   documentAlerts: AlertResponse[];
   maintenanceAlerts: AlertResponse[];
+}
+
+export interface VehicleReadinessResponse {
+  ready: boolean;
+  insuranceValid: boolean;
+  fitnessValid: boolean;
+  pollutionValid: boolean;
+  fuelAvailable: boolean;
+  driverAssigned: boolean;
+  maintenanceCompleted: boolean;
+  noActiveBreakdown: boolean;
+  issues: string[];
+}
+
+export interface VehicleTelemetryResponse {
+  engineTemperature: number | null;
+  batteryVoltage: number | null;
+  fuelLevel: number | null;
+  tirePressure: number | null;
+  brakeStatus: string | null;
+  oilHealth: string | null;
+  engineFaultCodes: string[];
+  mileage: number;
+}
+
+export interface FleetAnalyticsResponse {
+  utilizationRate: number;
+  averageFuelEfficiency: number;
+  downtimeRate: number;
+  totalMaintenanceCost: number;
+  totalDistanceCovered: number;
+  averageIdleTimeHours: number;
+  lifecycleDistribution: Record<string, number>;
 }
 
 export interface PageResponse<T> {

@@ -167,4 +167,39 @@ public class VehicleServiceImpl implements VehicleService {
                 .map(vehicleMapper::toResponse)
                 .toList();
     }
+
+    @Override
+    public VehicleResponse scheduleMaintenance(Long id) {
+        VehicleEntity entity = vehicleRepository.findById(id)
+                .orElseThrow(() -> new VehicleNotFoundException(id));
+
+        VehicleStatus targetStatus = (entity.getStatus() == VehicleStatus.AVAILABLE 
+                || entity.getStatus() == VehicleStatus.RESERVED 
+                || entity.getStatus() == VehicleStatus.ON_TRIP
+                || entity.getStatus() == VehicleStatus.IN_SHOP
+                || entity.getStatus() == VehicleStatus.BREAKDOWN) 
+                ? VehicleStatus.IN_SHOP 
+                : VehicleStatus.MAINTENANCE;
+
+        vehicleStatusValidator.validateTransition(entity.getStatus(), targetStatus);
+        entity.setStatus(targetStatus);
+        VehicleEntity saved = vehicleRepository.save(entity);
+        return vehicleMapper.toResponse(saved);
+    }
+
+    @Override
+    public VehicleResponse closeMaintenance(Long id) {
+        VehicleEntity entity = vehicleRepository.findById(id)
+                .orElseThrow(() -> new VehicleNotFoundException(id));
+
+        VehicleStatus targetStatus = (entity.getStatus() == VehicleStatus.IN_SHOP 
+                || entity.getStatus() == VehicleStatus.BREAKDOWN) 
+                ? VehicleStatus.AVAILABLE 
+                : VehicleStatus.ACTIVE;
+
+        vehicleStatusValidator.validateTransition(entity.getStatus(), targetStatus);
+        entity.setStatus(targetStatus);
+        VehicleEntity saved = vehicleRepository.save(entity);
+        return vehicleMapper.toResponse(saved);
+    }
 }

@@ -9,6 +9,8 @@ export const dashboardKeys = {
   utilization: () => [...dashboardKeys.all, 'utilization'] as const,
   documents: () => [...dashboardKeys.all, 'documents'] as const,
   maintenance: () => [...dashboardKeys.all, 'maintenance'] as const,
+  analytics: () => [...dashboardKeys.all, 'analytics'] as const,
+  alerts: () => [...dashboardKeys.all, 'alerts'] as const,
 };
 
 export function useFullDashboard() {
@@ -43,5 +45,19 @@ export function useDashboardDocuments() {
   return useQuery({
     queryKey: dashboardKeys.documents(),
     queryFn: dashboardApi.getDocumentAlerts,
+  });
+}
+
+export function useDashboardAnalytics() {
+  return useQuery({
+    queryKey: dashboardKeys.analytics(),
+    queryFn: dashboardApi.getAnalytics,
+  });
+}
+
+export function useDashboardAlerts() {
+  return useQuery({
+    queryKey: dashboardKeys.alerts(),
+    queryFn: dashboardApi.getActiveAlerts,
   });
 }

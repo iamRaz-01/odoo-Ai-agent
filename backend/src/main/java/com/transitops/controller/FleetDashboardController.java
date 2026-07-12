@@ -5,7 +5,10 @@ import com.transitops.dto.ApiResponse;
 import com.transitops.dto.FleetDashboardResponse;
 import com.transitops.dto.FleetHealthResponse;
 import com.transitops.dto.FleetSummaryResponse;
+import com.transitops.dto.FleetAnalyticsResponse;
 import com.transitops.service.FleetDashboardService;
+import com.transitops.service.FleetAnalyticsService;
+import com.transitops.service.AlertService;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,9 +22,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class FleetDashboardController {
 
     private final FleetDashboardService fleetDashboardService;
+    private final FleetAnalyticsService fleetAnalyticsService;
+    private final AlertService alertService;
 
-    public FleetDashboardController(FleetDashboardService fleetDashboardService) {
+    public FleetDashboardController(
+            FleetDashboardService fleetDashboardService,
+            FleetAnalyticsService fleetAnalyticsService,
+            AlertService alertService) {
         this.fleetDashboardService = fleetDashboardService;
+        this.fleetAnalyticsService = fleetAnalyticsService;
+        this.alertService = alertService;
     }
 
     @GetMapping
@@ -52,5 +62,15 @@ public class FleetDashboardController {
     @GetMapping("/maintenance")
     public ResponseEntity<ApiResponse<List<AlertResponse>>> getMaintenanceAlerts() {
         return ResponseEntity.ok(ApiResponse.success("Fleet maintenance alerts retrieved.", fleetDashboardService.getMaintenanceAlerts()));
+    }
+
+    @GetMapping("/analytics")
+    public ResponseEntity<ApiResponse<FleetAnalyticsResponse>> getAnalytics() {
+        return ResponseEntity.ok(ApiResponse.success("Fleet aggregate analytics retrieved.", fleetAnalyticsService.getAnalytics()));
+    }
+
+    @GetMapping("/alerts")
+    public ResponseEntity<ApiResponse<List<AlertResponse>>> getActiveAlerts() {
+        return ResponseEntity.ok(ApiResponse.success("Fleet reusable active alerts retrieved.", alertService.getActiveAlerts()));
     }
 }

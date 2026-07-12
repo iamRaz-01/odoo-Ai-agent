@@ -3,7 +3,8 @@ import type {
   FleetDashboardResponse,
   FleetSummaryResponse,
   FleetHealthResponse,
-  AlertResponse
+  AlertResponse,
+  FleetAnalyticsResponse
 } from '../../types/fleet';
 
 export const dashboardApi = {
@@ -34,6 +35,16 @@ export const dashboardApi = {
 
   getMaintenanceAlerts: async () => {
     const response = await httpClient.get<{ data: AlertResponse[] }>('/fleet/dashboard/maintenance');
+    return response.data.data;
+  },
+
+  getAnalytics: async () => {
+    const response = await httpClient.get<{ data: FleetAnalyticsResponse }>('/fleet/dashboard/analytics');
+    return response.data.data;
+  },
+
+  getActiveAlerts: async () => {
+    const response = await httpClient.get<{ data: AlertResponse[] }>('/fleet/dashboard/alerts');
     return response.data.data;
   }
 };

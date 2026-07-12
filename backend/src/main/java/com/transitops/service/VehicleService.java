@@ -17,4 +17,6 @@ public interface VehicleService {
     List<VehicleResponse> searchByRegistrationNumber(String registrationNumber);
     List<VehicleResponse> getVehiclesByStatus(VehicleStatus status);
     List<VehicleResponse> getVehiclesByTypeId(Long typeId);
+    VehicleResponse scheduleMaintenance(Long id);
+    VehicleResponse closeMaintenance(Long id);
 }

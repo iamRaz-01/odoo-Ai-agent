@@ -46,13 +46,27 @@ public class FleetDashboardServiceImpl implements FleetDashboardService {
         List<VehicleEntity> vehicles = vehicleRepository.findAll();
         
         long totalFleet = vehicles.size();
-        long activeVehicles = vehicles.stream().filter(v -> v.getStatus() != VehicleStatus.RETIRED).count();
-        long availableVehicles = vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.AVAILABLE).count();
-        long reservedVehicles = vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.RESERVED).count();
-        long onTrip = vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.ON_TRIP).count();
-        long maintenance = vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.IN_SHOP).count();
-        long breakdown = vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.BREAKDOWN).count();
-        long retired = vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.RETIRED).count();
+        long activeVehicles = vehicles.stream()
+                .filter(v -> v.getStatus() != VehicleStatus.RETIRED && v.getStatus() != VehicleStatus.DECOMMISSIONED)
+                .count();
+        long availableVehicles = vehicles.stream()
+                .filter(v -> v.getStatus() == VehicleStatus.AVAILABLE || v.getStatus() == VehicleStatus.ACTIVE || v.getStatus() == VehicleStatus.RETURNED)
+                .count();
+        long reservedVehicles = vehicles.stream()
+                .filter(v -> v.getStatus() == VehicleStatus.RESERVED || v.getStatus() == VehicleStatus.REGISTERED || v.getStatus() == VehicleStatus.PURCHASED)
+                .count();
+        long onTrip = vehicles.stream()
+                .filter(v -> v.getStatus() == VehicleStatus.ON_TRIP || v.getStatus() == VehicleStatus.ASSIGNED)
+                .count();
+        long maintenance = vehicles.stream()
+                .filter(v -> v.getStatus() == VehicleStatus.IN_SHOP || v.getStatus() == VehicleStatus.MAINTENANCE)
+                .count();
+        long breakdown = vehicles.stream()
+                .filter(v -> v.getStatus() == VehicleStatus.BREAKDOWN)
+                .count();
+        long retired = vehicles.stream()
+                .filter(v -> v.getStatus() == VehicleStatus.RETIRED || v.getStatus() == VehicleStatus.DECOMMISSIONED)
+                .count();
 
         return new FleetSummaryResponse(
                 totalFleet,
@@ -69,16 +83,17 @@ public class FleetDashboardServiceImpl implements FleetDashboardService {
     @Override
     public FleetHealthResponse getHealth() {
         List<VehicleEntity> vehicles = vehicleRepository.findAll();
-        long breakdownCount = vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.BREAKDOWN).count();
+        long breakdownCount = vehicles.stream()
+                .filter(v -> v.getStatus() == VehicleStatus.BREAKDOWN)
+                .count();
         
-        // Count expired documents (expiry_date < now)
         LocalDate now = LocalDate.now();
         List<VehicleDocumentEntity> allDocuments = vehicleDocumentRepository.findAll();
         long expiredDocumentsCount = allDocuments.stream()
                 .filter(d -> d.getExpiryDate().isBefore(now))
                 .count();
 
-        long overdueMaintenanceCount = 0; // Not yet implemented (Milestone 3+)
+        long overdueMaintenanceCount = 0; // Handled in future Maintenance module integration
 
         // Health Score = 100 - breakdownCount - overdueCount - expiredCount
         int score = (int) (100 - breakdownCount - overdueMaintenanceCount - expiredDocumentsCount);
@@ -95,15 +110,18 @@ public class FleetDashboardServiceImpl implements FleetDashboardService {
     @Override
     public double getUtilization() {
         List<VehicleEntity> vehicles = vehicleRepository.findAll();
-        long activeVehicles = vehicles.stream().filter(v -> v.getStatus() != VehicleStatus.RETIRED).count();
+        long activeVehicles = vehicles.stream()
+                .filter(v -> v.getStatus() != VehicleStatus.RETIRED && v.getStatus() != VehicleStatus.DECOMMISSIONED)
+                .count();
         if (activeVehicles == 0) {
             return 0.0;
         }
-        long onTrip = vehicles.stream().filter(v -> v.getStatus() == VehicleStatus.ON_TRIP).count();
+        long onTrip = vehicles.stream()
+                .filter(v -> v.getStatus() == VehicleStatus.ON_TRIP || v.getStatus() == VehicleStatus.ASSIGNED)
+                .count();
         
         // Utilization = (On Trip Vehicles / Active Vehicles) * 100
         double utilization = ((double) onTrip / activeVehicles) * 100.0;
-        // round to 2 decimal places
         return Math.round(utilization * 100.0) / 100.0;
     }
 
@@ -112,7 +130,6 @@ public class FleetDashboardServiceImpl implements FleetDashboardService {
         LocalDate now = LocalDate.now();
         LocalDate limit = now.plusDays(30);
         
-        // Fetch all documents expiring in the next 30 days or already expired
         List<VehicleDocumentEntity> documents = vehicleDocumentRepository.findByExpiryDateBefore(limit);
         List<AlertResponse> alerts = new ArrayList<>();
         
@@ -137,7 +154,7 @@ public class FleetDashboardServiceImpl implements FleetDashboardService {
 
     @Override
     public List<AlertResponse> getMaintenanceAlerts() {
-        // Placeholder for future Maintenance due integration (Milestone 3+)
+        // Placeholder for future Maintenance due alerts
         return new ArrayList<>();
     }
 }

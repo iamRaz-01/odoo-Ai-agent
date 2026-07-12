@@ -7,6 +7,8 @@ import type {
   VehicleTypeResponse,
   VehicleDocumentResponse,
   VehicleDocumentRequest,
+  VehicleReadinessResponse,
+  VehicleTelemetryResponse,
   PageResponse
 } from '../../types/fleet';
 
@@ -64,6 +66,26 @@ export const vehicleApi = {
 
   deleteVehicleDocument: async (documentId: number) => {
     await httpClient.delete<ApiResponse<Void>>(`/documents/${documentId}`);
+  },
+
+  checkReadiness: async (id: number) => {
+    const response = await httpClient.get<ApiResponse<VehicleReadinessResponse>>(`/vehicles/${id}/readiness`);
+    return response.data.data;
+  },
+
+  getTelemetry: async (id: number) => {
+    const response = await httpClient.get<ApiResponse<VehicleTelemetryResponse>>(`/vehicles/${id}/telemetry`);
+    return response.data.data;
+  },
+
+  scheduleMaintenance: async (id: number) => {
+    const response = await httpClient.post<ApiResponse<VehicleResponse>>(`/vehicles/${id}/maintenance/schedule`);
+    return response.data.data;
+  },
+
+  closeMaintenance: async (id: number) => {
+    const response = await httpClient.post<ApiResponse<VehicleResponse>>(`/vehicles/${id}/maintenance/close`);
+    return response.data.data;
   }
 };
 type Void = void;

@@ -25,5 +25,48 @@ public record VehicleRequest(
     BigDecimal odometer,
 
     @NotNull(message = "Status is required.")
-    VehicleStatus status
-) {}
+    VehicleStatus status,
+
+    @Size(max = 100, message = "Name cannot exceed 100 characters.")
+    String name,
+
+    @Size(max = 100, message = "Model cannot exceed 100 characters.")
+    String model,
+
+    @Size(max = 50, message = "Fuel type cannot exceed 50 characters.")
+    String fuelType,
+
+    @Min(value = 1900, message = "Manufacturing year must be after 1900.")
+    @Max(value = 2100, message = "Manufacturing year must be realistic.")
+    Integer manufacturingYear,
+
+    @Size(max = 100, message = "Engine number cannot exceed 100 characters.")
+    String engineNumber,
+
+    @Size(max = 100, message = "Chassis number cannot exceed 100 characters.")
+    String chassisNumber,
+
+    @Size(max = 100, message = "Assigned depot cannot exceed 100 characters.")
+    String assignedDepot,
+
+    @DecimalMin(value = "0.00", message = "Maximum capacity cannot be negative.")
+    BigDecimal maximumCapacity,
+
+    Long driverId,
+
+    @DecimalMin(value = "0.00", message = "Fuel level cannot be negative.")
+    @DecimalMax(value = "100.00", message = "Fuel level cannot exceed 100%.")
+    BigDecimal fuelLevel
+) {
+    // Alternate constructor for backward compatibility
+    public VehicleRequest(
+            String registrationNumber,
+            Long vehicleTypeId,
+            BigDecimal capacity,
+            BigDecimal acquisitionCost,
+            BigDecimal odometer,
+            VehicleStatus status) {
+        this(registrationNumber, vehicleTypeId, capacity, acquisitionCost, odometer, status,
+             null, null, null, null, null, null, null, null, null, null);
+    }
+}

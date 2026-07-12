@@ -31,7 +31,7 @@ describe('VehicleForm', () => {
     render(<VehicleForm onSubmit={handleSubmit} vehicleTypes={mockTypes} />);
 
     fireEvent.change(screen.getByLabelText(/Registration Number/i), { target: { value: 'NY-5555' } });
-    fireEvent.change(screen.getByLabelText(/Capacity/i), { target: { value: '-2.5' } });
+    fireEvent.change(screen.getByLabelText(/Payload Capacity/i), { target: { value: '-2.5' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => {

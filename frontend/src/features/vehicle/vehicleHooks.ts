@@ -10,6 +10,8 @@ export const vehicleKeys = {
   detail: (id: number) => [...vehicleKeys.details(), id] as const,
   types: () => [...vehicleKeys.all, 'types'] as const,
   documents: (vehicleId: number) => [...vehicleKeys.all, 'documents', vehicleId] as const,
+  readiness: (id: number) => [...vehicleKeys.all, 'readiness', id] as const,
+  telemetry: (id: number) => [...vehicleKeys.all, 'telemetry', id] as const,
 };
 
 export function useVehicles(params: {
@@ -108,6 +110,48 @@ export function useDeleteDocument(vehicleId: number) {
     mutationFn: (documentId: number) => vehicleApi.deleteVehicleDocument(documentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vehicleKeys.documents(vehicleId) });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
+export function useVehicleReadiness(id: number) {
+  return useQuery({
+    queryKey: vehicleKeys.readiness(id),
+    queryFn: () => vehicleApi.checkReadiness(id),
+    enabled: !!id && !isNaN(id),
+  });
+}
+
+export function useVehicleTelemetry(id: number) {
+  return useQuery({
+    queryKey: vehicleKeys.telemetry(id),
+    queryFn: () => vehicleApi.getTelemetry(id),
+    enabled: !!id && !isNaN(id),
+  });
+}
+
+export function useScheduleMaintenance(id: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => vehicleApi.scheduleMaintenance(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.readiness(id) });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
+export function useCloseMaintenance(id: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => vehicleApi.closeMaintenance(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: vehicleKeys.readiness(id) });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });

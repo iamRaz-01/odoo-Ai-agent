@@ -42,6 +42,36 @@ public class VehicleEntity {
     @Column(nullable = false, length = 20)
     private VehicleStatus status = VehicleStatus.AVAILABLE;
 
+    @Column(length = 100)
+    private String name;
+
+    @Column(length = 100)
+    private String model;
+
+    @Column(name = "fuel_type", length = 50)
+    private String fuelType;
+
+    @Column(name = "manufacturing_year")
+    private Integer manufacturingYear;
+
+    @Column(name = "engine_number", length = 100)
+    private String engineNumber;
+
+    @Column(name = "chassis_number", length = 100)
+    private String chassisNumber;
+
+    @Column(name = "assigned_depot", length = 100)
+    private String assignedDepot;
+
+    @Column(name = "maximum_capacity", precision = 10, scale = 2)
+    private BigDecimal maximumCapacity;
+
+    @Column(name = "driver_id")
+    private Long driverId;
+
+    @Column(name = "fuel_level", precision = 5, scale = 2)
+    private BigDecimal fuelLevel;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -67,6 +97,28 @@ public class VehicleEntity {
     public void setOdometer(BigDecimal odometer) { this.odometer = odometer; }
     public VehicleStatus getStatus() { return status; }
     public void setStatus(VehicleStatus status) { this.status = status; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getModel() { return model; }
+    public void setModel(String model) { this.model = model; }
+    public String getFuelType() { return fuelType; }
+    public void setFuelType(String fuelType) { this.fuelType = fuelType; }
+    public Integer getManufacturingYear() { return manufacturingYear; }
+    public void setManufacturingYear(Integer manufacturingYear) { this.manufacturingYear = manufacturingYear; }
+    public String getEngineNumber() { return engineNumber; }
+    public void setEngineNumber(String engineNumber) { this.engineNumber = engineNumber; }
+    public String getChassisNumber() { return chassisNumber; }
+    public void setChassisNumber(String chassisNumber) { this.chassisNumber = chassisNumber; }
+    public String getAssignedDepot() { return assignedDepot; }
+    public void setAssignedDepot(String assignedDepot) { this.assignedDepot = assignedDepot; }
+    public BigDecimal getMaximumCapacity() { return maximumCapacity; }
+    public void setMaximumCapacity(BigDecimal maximumCapacity) { this.maximumCapacity = maximumCapacity; }
+    public Long getDriverId() { return driverId; }
+    public void setDriverId(Long driverId) { this.driverId = driverId; }
+    public BigDecimal getFuelLevel() { return fuelLevel; }
+    public void setFuelLevel(BigDecimal fuelLevel) { this.fuelLevel = fuelLevel; }
+
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public Instant getDeletedAt() { return deletedAt; }
