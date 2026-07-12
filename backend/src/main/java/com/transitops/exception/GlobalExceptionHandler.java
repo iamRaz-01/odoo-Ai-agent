@@ -14,5 +14,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({InvalidCredentialsException.class, UnauthorizedException.class}) ResponseEntity<ApiError> unauthorized(RuntimeException e) { return error(HttpStatus.UNAUTHORIZED, "UNAUTHORIZED", e.getMessage()); }
     @ExceptionHandler(AccessDeniedException.class) ResponseEntity<ApiError> forbidden(AccessDeniedException e) { return error(HttpStatus.FORBIDDEN, "ACCESS_DENIED", "You do not have permission to perform this action."); }
     @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class}) ResponseEntity<ApiError> validation(Exception e) { return error(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "The request contains invalid data."); }
+    @ExceptionHandler({InvalidVehicleStatusException.class, VehicleDocumentExpiredException.class}) ResponseEntity<ApiError> badRequest(RuntimeException e) { return error(HttpStatus.BAD_REQUEST, "BAD_REQUEST", e.getMessage()); }
     private ResponseEntity<ApiError> error(HttpStatus status, String code, String message) { return ResponseEntity.status(status).body(ApiError.of(code, message)); }
 }
