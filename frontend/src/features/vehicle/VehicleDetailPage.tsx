@@ -191,7 +191,7 @@ export const VehicleDetailPage: React.FC = () => {
 
   if (vehicleError || !vehicle) {
     return (
-      <Alert severity="error" action={<Button color="inherit" onClick={() => navigate('/vehicles')}>Back</Button>}>
+      <Alert severity="error" action={<Button color="inherit" onClick={() => navigate('/fleet/vehicles')}>Back</Button>}>
         Vehicle not found or an error occurred.
       </Alert>
     );
@@ -206,7 +206,7 @@ export const VehicleDetailPage: React.FC = () => {
         <Link component={RouterLink} to="/dashboard" underline="hover" color="inherit">
           Dashboard
         </Link>
-        <Link component={RouterLink} to="/vehicles" underline="hover" color="inherit">
+        <Link component={RouterLink} to="/fleet/vehicles" underline="hover" color="inherit">
           Vehicles
         </Link>
         <Typography color="text.primary">{vehicle.registrationNumber}</Typography>
@@ -215,7 +215,7 @@ export const VehicleDetailPage: React.FC = () => {
       {/* Title block */}
       <Stack direction={{ xs: 'column', md: 'row' }} justify-content="space-between" spacing={2} alignItems={{ md: 'center' }} sx={{ mb: 4 }}>
         <Stack direction="row" spacing={2} alignItems="center">
-          <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/vehicles')} variant="outlined">
+          <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/fleet/vehicles')} variant="outlined">
             Back
           </Button>
           <Box>

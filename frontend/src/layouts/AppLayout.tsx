@@ -27,10 +27,27 @@ import BuildIcon from '@mui/icons-material/Build';
 import LocalGasStationIcon from '@mui/icons-material/LocalGasStation';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import SecurityIcon from '@mui/icons-material/Security';
+import SettingsIcon from '@mui/icons-material/Settings';
+import HistoryIcon from '@mui/icons-material/History';
+import GroupIcon from '@mui/icons-material/Group';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
+import EventNoteIcon from '@mui/icons-material/EventNote';
+import RouteIcon from '@mui/icons-material/AltRoute';
+import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import SchoolIcon from '@mui/icons-material/School';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+
 import { useAuthStore } from '../store/authStore';
 import { authApi } from '../features/authentication/authApi';
 
 const drawerWidth = 240;
+
+type MenuItemType = 
+  | { subheader: string }
+  | { label: string; path: string; icon: React.ReactNode };
 
 export function AppLayout() {
   const navigate = useNavigate();
@@ -59,8 +76,6 @@ export function AppLayout() {
   });
 
   const userRole = user?.role?.name;
-  const isAdmin = userRole === 'ADMIN';
-  const isDriver = userRole === 'DRIVER';
 
   // Active path checking helper
   const isActive = (path: string) => location.pathname === path;
@@ -80,10 +95,68 @@ export function AppLayout() {
     }
   };
 
-  // If driver logged in, hide all layout content or show unauthorized
-  if (isDriver) {
-    return <Outlet />;
-  }
+  const getMenuItems = (): MenuItemType[] => {
+    switch (userRole) {
+      case 'ADMIN':
+        return [
+          { subheader: 'System Administration' },
+          { label: 'Admin Dashboard', path: '/admin/dashboard', icon: <DashboardIcon /> },
+          { label: 'User Management', path: '/admin/users', icon: <PeopleIcon /> },
+          { label: 'Role Permissions', path: '/admin/roles', icon: <SecurityIcon /> },
+          { label: 'System Settings', path: '/admin/settings', icon: <SettingsIcon /> },
+          { label: 'Audit Logs', path: '/admin/audit-logs', icon: <HistoryIcon /> },
+          { subheader: 'Fleet Administration' },
+          { label: 'Vehicles Registry', path: '/fleet/vehicles', icon: <DirectionsCarIcon /> },
+          { label: 'Drivers Registry', path: '/safety/drivers', icon: <GroupIcon /> },
+          { label: 'Trips Registry', path: '/trips', icon: <LocalShippingIcon /> }
+        ];
+      case 'FLEET_MANAGER':
+        return [
+          { subheader: 'Fleet Operations' },
+          { label: 'Fleet Dashboard', path: '/fleet/dashboard', icon: <DashboardIcon /> },
+          { label: 'Vehicles Registry', path: '/fleet/vehicles', icon: <DirectionsCarIcon /> },
+          { label: 'Trips Registry', path: '/trips', icon: <LocalShippingIcon /> },
+          { label: 'Fleet Analytics', path: '/fleet/analytics', icon: <AnalyticsIcon /> },
+          { label: 'Fleet Alerts', path: '/fleet/alerts', icon: <ReportProblemIcon /> }
+        ];
+      case 'DISPATCHER':
+        return [
+          { subheader: 'Dispatch Panel' },
+          { label: 'Dispatch Dashboard', path: '/dispatcher/dashboard', icon: <DashboardIcon /> },
+          { label: 'Trips Registry', path: '/trips', icon: <LocalShippingIcon /> },
+          { label: 'Trip Scheduling', path: '/dispatcher/scheduling', icon: <EventNoteIcon /> },
+          { label: 'Assignments', path: '/dispatcher/assignments', icon: <RouteIcon /> }
+        ];
+      case 'DRIVER':
+        return [
+          { subheader: 'Driver Portal' },
+          { label: 'Driver Dashboard', path: '/driver/dashboard', icon: <DashboardIcon /> },
+          { label: 'My Assigned Trips', path: '/trips', icon: <RouteIcon /> },
+          { label: 'Pre-Trip Inspection', path: '/driver/inspection', icon: <BuildIcon /> },
+          { label: 'Fuel Logs', path: '/driver/fuel-logs', icon: <LocalGasStationIcon /> },
+          { label: 'Expenses Claims', path: '/driver/expenses', icon: <AttachMoneyIcon /> }
+        ];
+      case 'SAFETY_OFFICER':
+        return [
+          { subheader: 'Safety & Compliance' },
+          { label: 'Safety Dashboard', path: '/safety/dashboard', icon: <DashboardIcon /> },
+          { label: 'Drivers Registry', path: '/safety/drivers', icon: <GroupIcon /> },
+          { label: 'Compliance Audits', path: '/safety/compliance', icon: <HealthAndSafetyIcon /> },
+          { label: 'Incident Records', path: '/safety/incidents', icon: <WarningAmberIcon /> },
+          { label: 'Safety Training', path: '/safety/training', icon: <SchoolIcon /> }
+        ];
+      case 'FINANCE_OFFICER':
+        return [
+          { subheader: 'Finance & Accounts' },
+          { label: 'Finance Dashboard', path: '/finance/dashboard', icon: <DashboardIcon /> },
+          { label: 'Expenses Claims', path: '/finance/expenses', icon: <AttachMoneyIcon /> },
+          { label: 'Fuel log receipts', path: '/finance/fuel-logs', icon: <LocalGasStationIcon /> },
+          { label: 'Financial reports', path: '/finance/reports', icon: <AssessmentIcon /> }
+        ];
+      default:
+        return [];
+    }
+  };
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -182,116 +255,29 @@ export function AppLayout() {
         <Toolbar />
         <Box sx={{ overflow: 'auto', display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
           <List>
-            <ListItemButton
-              component={RouterLink}
-              to="/dashboard"
-              selected={isActive('/dashboard')}
-              sx={{ mb: 0.5 }}
-            >
-              <ListItemIcon>
-                <DashboardIcon />
-              </ListItemIcon>
-              <ListItemText primary="Dashboard" />
-            </ListItemButton>
-
-            <ListSubheader component="div" sx={{ lineHeight: '36px', fontWeight: 'bold' }}>
-              Fleet Operations
-            </ListSubheader>
-
-            <ListItemButton
-              component={RouterLink}
-              to="/vehicles"
-              selected={isActive('/vehicles')}
-              sx={{ mb: 0.5 }}
-            >
-              <ListItemIcon>
-                <DirectionsCarIcon />
-              </ListItemIcon>
-              <ListItemText primary="Vehicles" />
-            </ListItemButton>
-
-            <ListItemButton
-              component={RouterLink}
-              to="/drivers"
-              selected={isActive('/drivers')}
-              sx={{ mb: 0.5 }}
-            >
-              <ListItemIcon>
-                <PeopleIcon />
-              </ListItemIcon>
-              <ListItemText primary="Drivers" />
-            </ListItemButton>
-
-            <ListItemButton
-              component={RouterLink}
-              to="/trips"
-              selected={isActive('/trips')}
-              sx={{ mb: 0.5 }}
-            >
-              <ListItemIcon>
-                <LocalShippingIcon />
-              </ListItemIcon>
-              <ListItemText primary="Trips" />
-            </ListItemButton>
-
-            <ListSubheader component="div" sx={{ lineHeight: '36px', fontWeight: 'bold' }}>
-              Maintenance & Finance
-            </ListSubheader>
-
-            <ListItemButton
-              component={RouterLink}
-              to="/maintenance"
-              selected={isActive('/maintenance')}
-              sx={{ mb: 0.5 }}
-            >
-              <ListItemIcon>
-                <BuildIcon />
-              </ListItemIcon>
-              <ListItemText primary="Maintenance" />
-            </ListItemButton>
-
-            <ListItemButton
-              component={RouterLink}
-              to="/fuel-logs"
-              selected={isActive('/fuel-logs')}
-              sx={{ mb: 0.5 }}
-            >
-              <ListItemIcon>
-                <LocalGasStationIcon />
-              </ListItemIcon>
-              <ListItemText primary="Fuel Logs" />
-            </ListItemButton>
-
-            <ListItemButton
-              component={RouterLink}
-              to="/expenses"
-              selected={isActive('/expenses')}
-              sx={{ mb: 0.5 }}
-            >
-              <ListItemIcon>
-                <AttachMoneyIcon />
-              </ListItemIcon>
-              <ListItemText primary="Expenses" />
-            </ListItemButton>
-
-            {isAdmin && (
-              <>
-                <ListSubheader component="div" sx={{ lineHeight: '36px', fontWeight: 'bold' }}>
-                  Administration
-                </ListSubheader>
+            {getMenuItems().map((item, index) => {
+              if ('subheader' in item) {
+                return (
+                  <ListSubheader key={index} component="div" sx={{ lineHeight: '36px', fontWeight: 'bold' }}>
+                    {item.subheader}
+                  </ListSubheader>
+                );
+              }
+              return (
                 <ListItemButton
+                  key={index}
                   component={RouterLink}
-                  to="/users"
-                  selected={isActive('/users')}
+                  to={item.path}
+                  selected={isActive(item.path)}
                   sx={{ mb: 0.5 }}
                 >
                   <ListItemIcon>
-                    <PeopleIcon />
+                    {item.icon}
                   </ListItemIcon>
-                  <ListItemText primary="User Management" />
+                  <ListItemText primary={item.label} />
                 </ListItemButton>
-              </>
-            )}
+              );
+            })}
           </List>
           
           <Box>
@@ -315,3 +301,4 @@ export function AppLayout() {
     </Box>
   );
 }
+export default AppLayout;

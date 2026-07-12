@@ -84,7 +84,7 @@ public class VehicleServiceImpl implements VehicleService {
         registrationNumberValidator.validate(request.registrationNumber());
         String normReg = registrationNumberValidator.normalize(request.registrationNumber());
 
-        if (vehicleRepository.existsByRegistrationNumberIgnoreCase(normReg)) {
+        if (vehicleRepository.existsByRegistrationNumberIgnoreCaseAny(normReg) > 0) {
             throw new DuplicateRegistrationException(normReg);
         }
 

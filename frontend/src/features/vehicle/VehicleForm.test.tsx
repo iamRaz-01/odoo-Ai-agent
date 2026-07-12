@@ -2,6 +2,11 @@ import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/re
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { VehicleForm } from './VehicleForm';
 
+vi.mock('../driver/driverHooks', () => ({
+  useAvailableDrivers: () => ({ data: [], isLoading: false }),
+  useDriver: () => ({ data: null })
+}));
+
 const mockTypes = [
   { id: 1, name: 'TRUCK', description: 'Heavy Truck' },
   { id: 2, name: 'VAN', description: 'Cargo Van' }
